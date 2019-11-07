@@ -56,9 +56,9 @@ def distance_between_coords(x1, x2, y1, y2):
     return math.sqrt((x2 - x1)**2 + (y2 - y1)**2)
 
 def generate_random_route(city_list):
-    copy = city_list[:]
+    copy = city_list[1:]
     random.shuffle(copy)
-    city_list[:] = copy
+    city_list[1:] = copy
     return city_list
 
 def two_opt_swap(route):
@@ -100,7 +100,9 @@ def tournament_selection(cities_map, parents, selection_size, population_size):
 def initialise_population(cities_list, population_size):
     population = []
     while len(population) < population_size:
-        population.append(generate_random_route(cities_list))
+        new_route = generate_random_route(cities_list)
+        if new_route not in population:
+            population.append(new_route[:])
     return population
 
 def find_shortest_route_in_population(population, cities_map):
@@ -116,29 +118,46 @@ def find_shortest_route_in_population(population, cities_map):
 def evolution(cities_map, city_list, population_size, selection_size, termination_max_generations, mutation_probability, recombination_probability):
     shortest_route = city_list
     shortest_cost = get_cost_of_route(city_list, cities_map)
+    print(shortest_route)
+    print(shortest_cost)
     generation = 1
 
+    # Initialise the population randomly
     population = initialise_population(city_list, population_size)
 
-    while generation < termination_max_generations:
-        new_population = tournament_selection(cities_map, population, selection_size)
+    # Run for specified number of generations
+    while generation <= termination_max_generations:
+        # Select the best parents in the population using Tournament Select
+        new_population = tournament_selection(cities_map, population, selection_size, population_size)
 
-        route = generate_random_route(city_list)
-        new_cost = get_cost_of_route(route, cities_map)
+        # Recombine pairs of parents randomly
+        for route in new_population:
+            if random.random() <= recombination_probability:
+                other_parent = random.choice(new_population)
+                route = order_one_crossover(route, other_parent)
 
-        print(f"Gen {generation}: {new_cost:.14f} - {route}           [{shortest_cost:.14f}]")
+        # Mutate Offspring
+        for route in new_population:
+            if random.random() <= mutation_probability:
+                route = two_opt_swap(route)
+
+        #Evaluate best from this generation
+        new_route = find_shortest_route_in_population(new_population, cities_map)
+        new_cost = get_cost_of_route(new_route, cities_map)
+
+        if new_cost < shortest_cost:
+            shortest_cost = new_cost
+            shortest_route = new_route
+            print("New Best")
+            print(f"Gen {generation}: {shortest_cost:.14f} - {shortest_route}")
+            print("===")
+        else:
+            print(f"Gen {generation}: {new_cost:.14f} - {new_route}           [{shortest_cost:.14f}]")
         generation += 1
-        if shortest_cost > new_cost:
-            cost = new_cost
-            shortest_route = route
 
-        elapsed_time = time.time() - start_time
-    
-    print(f"\n=============== FINISHED ===============\nShortest Size: {cost}\nShortest Routes:")
-    for route in shortest_routes:
-        print(route)
-
-    return shortest_routes
+    # Return Shortest Route
+    print(f"\n=============== FINISHED ===============\nShortest Size: {shortest_cost}\nShortest Route: {shortest_route}")
+    return shortest_route
 
 ## ======================================================================
 ## Program Run
@@ -147,13 +166,13 @@ start_time = time.time()
 cities_map = get_cities_from_file("../TravellingSalesman/ulysses16(1).csv")
 city_list = get_list_of_cities(cities_map)
 
-population_size = 100
-selection_size = 20
+population_size = 200
+selection_size = 10
 termination_max_generations = 100
-mutation_probability = 0.2
-recombination_probability = 0.2
+mutation_probability = 0.8
+recombination_probability = 0.8
 
-
+evolution(cities_map, city_list, population_size, selection_size, termination_max_generations, mutation_probability, recombination_probability)
 
 ## Program End
 end_time = time.time()
