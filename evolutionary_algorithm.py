@@ -102,16 +102,9 @@ def find_shortest_routes_with_neighbourhood(cities_map, time_limit):
             new_cost = get_cost_of_route(new_route, cities_map)
             if get_cost_of_route(shortest_route, cities_map) > new_cost:
                 shortest_route = new_route
-                #print(f"New Shortest: {shortest_route}  [{new_cost}]")
-            #else:
-                #print("Local best not short enough.")
             route = generate_random_route(cities_list)
-            
         else:
             route = new_route
-
-
-        #print(f'{i}: {route}    [{get_cost_of_route(route, cities_map)}]')
         i += 1
 
         elapsed_time = time.time() - start_time
