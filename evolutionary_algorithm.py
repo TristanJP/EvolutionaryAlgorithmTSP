@@ -5,14 +5,15 @@
 # Representation: Route = List of integers associated with cities e.g. [0,1,2,3,4,5]
 # Fitness Evaluation: get_cost_of_route() function which adds up the distances between all cities in a route
 # Recombination: Order 1 Crossover function which takes a random section of one route and inserts it into another route while keeping all elements unique
-# Recombination Probability: 100%
+# Recombination Probability: 100% (Required)
 # Mutation: two_op_swap() function will randomly swap two cities in a route
-# Mutation Probability: Test: 20%, Actual: 30%
+# Mutation Probability: Test: 20%, Actual: 50%
 # Parent Selection: Tournament Selection, Selection of parents chosen at random and best parent returned
 # Survivor Selection: Elitism Model, Offspring added to parent population, then culled based on fitness back to {population size}
-# Population Size: Test = 100, Actual = ?
+# Selection Size: TEst = 10, Actual = 30
+# Population Size: Test = 100, Actual = 200
 # Initialisation: Create a list of length {population size} containing randomly generated routes. Repetitions are allowed.
-# Termination: After ? generations tested
+# Termination: After 42 generations tested
 #
 
 import math
@@ -137,6 +138,7 @@ def evolution(cities_map, city_list, population_size, selection_size, terminatio
         i = 0
         while i < len(parents) * 3:
             if random.random() <= recombination_probability:
+                parent = random.choice(parents)
                 other_parent = random.choice(parents)
                 offspring.append(order_one_crossover(parent, other_parent))
             i += 1
@@ -167,9 +169,7 @@ def evolution(cities_map, city_list, population_size, selection_size, terminatio
         if new_cost < shortest_cost:
             shortest_cost = new_cost
             shortest_route = new_route
-            print("New Best")
-            print(f"Gen {generation}: {shortest_cost:.14f} - {shortest_route}")
-            print("===")
+            print(f"Gen {generation}: {shortest_cost:.14f} - {shortest_route}             === NEW BEST ===")
         else:
             print(f"Gen {generation}: {new_cost:.14f} - {new_route}           [{shortest_cost:.14f}]")
         generation += 1
@@ -185,10 +185,10 @@ start_time = time.time()
 cities_map = get_cities_from_file("../TravellingSalesman/ulysses16(1).csv")
 city_list = get_list_of_cities(cities_map)
 
-population_size = 50
-selection_size = 8
-termination_max_generations = 3
-mutation_probability = 0.3
+population_size = 200
+selection_size = 30
+termination_max_generations = 42
+mutation_probability = 0.5
 recombination_probability = 1 # Must be 100%
 
 evolution(cities_map, city_list, population_size, selection_size, termination_max_generations, mutation_probability, recombination_probability)
