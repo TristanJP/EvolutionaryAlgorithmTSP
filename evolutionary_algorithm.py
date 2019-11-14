@@ -186,7 +186,7 @@ cities_map = get_cities_from_file("../TravellingSalesman/ulysses16(1).csv")
 city_list = get_list_of_cities(cities_map)
 
 population_size = 200
-selection_size = 30
+selection_size = 20
 termination_max_generations = 42
 mutation_probability = 0.5
 recombination_probability = 1 # Must be 100%
