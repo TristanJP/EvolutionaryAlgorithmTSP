@@ -125,19 +125,12 @@ def evolution(cities_map, city_list, population_size, selection_size, terminatio
 
     # Initialise the population randomly
     population = initialise_population(city_list, population_size)
-    for route in population:
-        print(route)
-    print()
 
     # Run for specified number of generations
     while generation <= termination_max_generations:
 
         # Select the best parents in the population using Tournament Select
         parents = tournament_selection(cities_map, population, selection_size, population_size)
-        print("parents")
-        for parent in parents:
-            print(parent)
-        print()
 
         # Generate 3 x (number of parents) Offspring
         offspring = []
@@ -155,32 +148,20 @@ def evolution(cities_map, city_list, population_size, selection_size, terminatio
                 offspring[i] = two_opt_swap(offspring[i])
                 i += 1
 
-        print("offspring")
-        for child in offspring:
-            print(child)
-        print()
-
         # Create new population from parents and offspring
         new_population = parents + offspring
-        print("new_population")
-        for route in new_population:
-            print(route)
-        print()
 
         # Sort the population based on cost of route, lower costs first
         new_population.sort(key = lambda route: get_cost_of_route(route, cities_map))
         
         # Elitism, pick only the best of all routes from the population
         new_population = new_population[:population_size]
-        print("sort and cut")
-        for route in new_population:
-            print(route)
-        print()
 
         # Evaluate best from this generation
         new_route = new_population[0]
         new_cost = get_cost_of_route(new_population[0], cities_map)
 
+        # Replace the old population with the newly generated one
         population = new_population
 
         if new_cost < shortest_cost:
