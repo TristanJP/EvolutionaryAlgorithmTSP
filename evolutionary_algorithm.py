@@ -5,11 +5,11 @@
 # Representation: Route = List of integers associated with cities e.g. [0,1,2,3,4,5]
 # Fitness Evaluation: get_cost_of_route() function which adds up the distances between all cities in a route
 # Recombination: Order 1 Crossover function which takes a random section of one route and inserts it into another route while keeping all elements unique
-# Recombination Probability: Test: 20%, Actual: ?
+# Recombination Probability: 100%
 # Mutation: two_op_swap() function will randomly swap two cities in a route
-# Mutation Probability: Test: 20%, Actual: ?
-# Parent Selection: Tournament Selection, Selection from parents chosen at random and best parent returned
-# Survivor Selection: Generational Model, new population filled with offspring that replaces parents
+# Mutation Probability: Test: 20%, Actual: 30%
+# Parent Selection: Tournament Selection, Selection of parents chosen at random and best parent returned
+# Survivor Selection: Elitism Model, Offspring added to parent population, then culled based on fitness back to {population size}
 # Population Size: Test = 100, Actual = ?
 # Initialisation: Create a list of length {population size} containing randomly generated routes. Repetitions are allowed.
 # Termination: After ? generations tested
@@ -94,7 +94,10 @@ def tournament_select_route(cities_map, parents, selection_size):
 def tournament_selection(cities_map, parents, selection_size, population_size):
     population = []
     while len(population) < population_size:
-        population.append(tournament_select_route(cities_map, parents, selection_size))
+        if random.random() < 1:
+            population.append(tournament_select_route(cities_map, parents, selection_size))
+        else:
+            population.append(generate_random_route(city_list))
     return population
 
 def initialise_population(cities_list, population_size):
@@ -118,32 +121,67 @@ def find_shortest_route_in_population(population, cities_map):
 def evolution(cities_map, city_list, population_size, selection_size, termination_max_generations, mutation_probability, recombination_probability):
     shortest_route = city_list
     shortest_cost = get_cost_of_route(city_list, cities_map)
-    print(shortest_route)
-    print(shortest_cost)
     generation = 1
 
     # Initialise the population randomly
     population = initialise_population(city_list, population_size)
+    for route in population:
+        print(route)
+    print()
 
     # Run for specified number of generations
     while generation <= termination_max_generations:
-        # Select the best parents in the population using Tournament Select
-        new_population = tournament_selection(cities_map, population, selection_size, population_size)
 
-        # Recombine pairs of parents randomly
-        for route in new_population:
+        # Select the best parents in the population using Tournament Select
+        parents = tournament_selection(cities_map, population, selection_size, population_size)
+        print("parents")
+        for parent in parents:
+            print(parent)
+        print()
+
+        # Generate 3 x (number of parents) Offspring
+        offspring = []
+        i = 0
+        while i < len(parents) * 3:
             if random.random() <= recombination_probability:
-                other_parent = random.choice(new_population)
-                route = order_one_crossover(route, other_parent)
+                other_parent = random.choice(parents)
+                offspring.append(order_one_crossover(parent, other_parent))
+            i += 1
 
         # Mutate Offspring
-        for route in new_population:
+        i = 0
+        for i in range(len(offspring)):
             if random.random() <= mutation_probability:
-                route = two_opt_swap(route)
+                offspring[i] = two_opt_swap(offspring[i])
+                i += 1
 
-        #Evaluate best from this generation
-        new_route = find_shortest_route_in_population(new_population, cities_map)
-        new_cost = get_cost_of_route(new_route, cities_map)
+        print("offspring")
+        for child in offspring:
+            print(child)
+        print()
+
+        # Create new population from parents and offspring
+        new_population = parents + offspring
+        print("new_population")
+        for route in new_population:
+            print(route)
+        print()
+
+        # Sort the population based on cost of route, lower costs first
+        new_population.sort(key = lambda route: get_cost_of_route(route, cities_map))
+        
+        # Elitism, pick only the best of all routes from the population
+        new_population = new_population[:population_size]
+        print("sort and cut")
+        for route in new_population:
+            print(route)
+        print()
+
+        # Evaluate best from this generation
+        new_route = new_population[0]
+        new_cost = get_cost_of_route(new_population[0], cities_map)
+
+        population = new_population
 
         if new_cost < shortest_cost:
             shortest_cost = new_cost
@@ -166,11 +204,11 @@ start_time = time.time()
 cities_map = get_cities_from_file("../TravellingSalesman/ulysses16(1).csv")
 city_list = get_list_of_cities(cities_map)
 
-population_size = 200
-selection_size = 10
-termination_max_generations = 100
-mutation_probability = 0.8
-recombination_probability = 0.8
+population_size = 50
+selection_size = 8
+termination_max_generations = 3
+mutation_probability = 0.3
+recombination_probability = 1 # Must be 100%
 
 evolution(cities_map, city_list, population_size, selection_size, termination_max_generations, mutation_probability, recombination_probability)
 
